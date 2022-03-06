@@ -1,9 +1,12 @@
 C = require "curses"
 re = require 're'
+unpack = table.unpack or _G.unpack
 line_matcher = re.compile('lines<-{| line ("\n" line)* |} line<-{[^\n]*}')
 local ldb
 AUTO = {} -- Singleton
 PARENT = {} -- Singleton
+
+launched = false
 
 -- TODO: add support for stepping debugger
 -- TODO: add vim-style search functionality via "/"

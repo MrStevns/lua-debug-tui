@@ -1,5 +1,6 @@
 local C = require("curses")
 local re = require('re')
+local unpack = table.unpack or _G.unpack
 local line_matcher = re.compile('lines<-{| line ("\n" line)* |} line<-{[^\n]*}')
 local ldb
 local AUTO = { }
