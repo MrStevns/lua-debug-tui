@@ -609,6 +609,24 @@ err_hand = (err)->
     print(debug.traceback(err, 2))
     os.exit(2)
 
+show_launch_screen = (stdscr, width, height, launch_msg) ->    
+    do -- Fullscreen flash
+        stdscr\wbkgd(Color"yellow on red bold")
+        stdscr\clear!
+        stdscr\refresh!
+        lines = wrap_text("LUA DEBUGGER:\n \n "..launch_msg.."\n \npress any key...", math.floor(width-2))
+        max_line = 0
+        for line in *lines do max_line = math.max(max_line, #line)
+        for i, line in ipairs(lines)
+            if i == 1 or i == #lines
+                stdscr\mvaddstr(math.floor(height/2 - #lines/2)+i, math.floor((width-#line)/2), line)
+            else
+                stdscr\mvaddstr(math.floor(height/2 - #lines/2)+i, math.floor((width-max_line)/2), line)
+        stdscr\refresh!
+        C.doupdate!
+        stdscr\getch!
+        launched = true
+
 ldb = {
     run_debugger: (err_msg)->
         local select_pad
@@ -632,21 +650,8 @@ ldb = {
             .userdata = Color('cyan bold')
             .thread = Color('blue')
 
-        do -- Fullscreen flash
-            stdscr\wbkgd(Color"yellow on red bold")
-            stdscr\clear!
-            stdscr\refresh!
-            lines = wrap_text("ERROR!\n \n "..err_msg.."\n \npress any key...", math.floor(SCREEN_W-2))
-            max_line = 0
-            for line in *lines do max_line = math.max(max_line, #line)
-            for i, line in ipairs(lines)
-                if i == 1 or i == #lines
-                    stdscr\mvaddstr(math.floor(SCREEN_H/2 - #lines/2)+i, math.floor((SCREEN_W-#line)/2), line)
-                else
-                    stdscr\mvaddstr(math.floor(SCREEN_H/2 - #lines/2)+i, math.floor((SCREEN_W-max_line)/2), line)
-            stdscr\refresh!
-            C.doupdate!
-            stdscr\getch!
+        if launched == false
+            show_launch_screen(stdscr, SCREEN_W, SCREEN_H, err_msg)
 
         stdscr\keypad!
         stdscr\wbkgd(Color!)
