@@ -5,6 +5,7 @@ local line_matcher = re.compile('lines<-{| line ("\n" line)* |} line<-{[^\n]*}')
 local ldb
 local AUTO = { }
 local PARENT = { }
+local launched = false
 local _error = error
 local _assert = assert
 local callstack_range
@@ -118,7 +119,7 @@ do
         end
         self._width = self._width + col_width
       end
-      self._width = math.max(self._width, 1)
+      self._width = math.max(self._width, 6)
       if self.width == AUTO then
         self.width = self._width + 2
       end
@@ -961,6 +962,31 @@ err_hand = function(err)
   print(debug.traceback(err, 2))
   return os.exit(2)
 end
+local show_launch_screen
+show_launch_screen = function(stdscr, width, height, launch_msg)
+  do
+    stdscr:wbkgd(Color("yellow on red bold"))
+    stdscr:clear()
+    stdscr:refresh()
+    local lines = wrap_text("LUA DEBUGGER:\n \n " .. launch_msg .. "\n \npress any key...", math.floor(width - 2))
+    local max_line = 0
+    for _index_0 = 1, #lines do
+      local line = lines[_index_0]
+      max_line = math.max(max_line, #line)
+    end
+    for i, line in ipairs(lines) do
+      if i == 1 or i == #lines then
+        stdscr:mvaddstr(math.floor(height / 2 - #lines / 2) + i, math.floor((width - #line) / 2), line)
+      else
+        stdscr:mvaddstr(math.floor(height / 2 - #lines / 2) + i, math.floor((width - max_line) / 2), line)
+      end
+    end
+    stdscr:refresh()
+    C.doupdate()
+    stdscr:getch()
+    launched = true
+  end
+end
 ldb = {
   run_debugger = function(err_msg)
     local select_pad
@@ -986,26 +1012,8 @@ ldb = {
       TYPE_COLORS.userdata = Color('cyan bold')
       TYPE_COLORS.thread = Color('blue')
     end
-    do
-      stdscr:wbkgd(Color("yellow on red bold"))
-      stdscr:clear()
-      stdscr:refresh()
-      local lines = wrap_text("ERROR!\n \n " .. err_msg .. "\n \npress any key...", math.floor(SCREEN_W - 2))
-      local max_line = 0
-      for _index_0 = 1, #lines do
-        local line = lines[_index_0]
-        max_line = math.max(max_line, #line)
-      end
-      for i, line in ipairs(lines) do
-        if i == 1 or i == #lines then
-          stdscr:mvaddstr(math.floor(SCREEN_H / 2 - #lines / 2) + i, math.floor((SCREEN_W - #line) / 2), line)
-        else
-          stdscr:mvaddstr(math.floor(SCREEN_H / 2 - #lines / 2) + i, math.floor((SCREEN_W - max_line) / 2), line)
-        end
-      end
-      stdscr:refresh()
-      C.doupdate()
-      stdscr:getch()
+    if launched == false then
+      show_launch_screen(stdscr, SCREEN_W, SCREEN_H, err_msg)
     end
     stdscr:keypad()
     stdscr:wbkgd(Color())
