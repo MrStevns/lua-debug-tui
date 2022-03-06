@@ -120,7 +120,7 @@ class Pad
             col_width = 0
             for chunk in *col do col_width = math.max(col_width, #chunk)
             @_width += col_width
-        @_width = math.max(@_width, 1)
+        @_width = math.max(@_width, 6)
         if @width == AUTO
             @width = @_width + 2
 
